@@ -129,8 +129,11 @@ def tryon_with_openai(request: TryOnRequest):
         'model': 'gpt-image-1',
         'prompt': (
             'Make the person in the first image wear the clothing item shown in the second image. '
-            'Keep the person\'s face, hair, body shape, pose and the background exactly the same. '
-            'Only change their outfit to the new clothing. Make it look natural and realistic.'
+            'CRITICAL: The person\'s face MUST remain 100% identical to the original photo - '
+            'same facial features, same expression, same skin tone, no distortion or alteration whatsoever. '
+            'Also keep the hair, body shape, pose and background exactly the same as the original. '
+            'Only replace the outfit with the new clothing, fitted naturally to the body. '
+            'Photorealistic quality.'
         ),
         'input_fidelity': 'high',
     }
@@ -152,7 +155,12 @@ async def refine_image(request: RefineRequest):
         }
         data = {
             'model': 'gpt-image-1',
-            'prompt': request.prompt,
+            'prompt': (
+                f'{request.prompt}. '
+                'CRITICAL: Keep the person\'s face 100% identical to the original image - '
+                'same facial features, no distortion. Do not alter the face in any way.'
+            ),
+            'input_fidelity': 'high',
         }
 
         img_b64 = openai_images_edit(files, data)
