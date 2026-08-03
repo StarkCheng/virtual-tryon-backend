@@ -13,7 +13,7 @@ app = FastAPI()
 
 REPLICATE_API_TOKEN = os.getenv('REPLICATE_API_TOKEN')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-TRYON_ENGINE = os.getenv('TRYON_ENGINE', 'replicate')  # 'replicate' 或 'openai'
+TRYON_ENGINE = os.getenv('TRYON_ENGINE', 'openai')  # 'replicate' 或 'openai'
 
 app.add_middleware(
     CORSMiddleware,
