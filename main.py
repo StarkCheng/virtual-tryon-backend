@@ -41,7 +41,7 @@ async def generate_tryon(request: TryOnRequest):
         if not REPLICATE_API_TOKEN:
             raise HTTPException(status_code=500, detail='Replicate API token not configured')
         
-        client = replicate.Replicate(api_token=REPLICATE_API_TOKEN)
+        client = replicate.Client(api_token=REPLICATE_API_TOKEN)
         
         output = client.run(
             'cuuupid/idm-vton',
