@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ 虛擬試衣間</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.mobile-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.header-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+input[type="text"],
+input[type="file"],
+textarea {
+  width: 100%;
+  padding: 0.875rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  background: #fff;
+  color: #333;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: #378add;
+  box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.1);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.upload-box {
+  border: 2px dashed #999;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: #fafafa;
+  transition: all 0.2s;
+}
+
+.upload-box:active {
+  border-color: #378add;
+  background: #f0f7ff;
+}
+
+.upload-box input {
+  display: none;
+}
+
+.upload-text {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.image-preview {
+  margin-top: 1rem;
+  width: 100%;
+  max-height: 250px;
+  border-radius: 8px;
+  object-fit: contain;
+  display: none;
+}
+
+.image-preview.show {
+  display: block;
+}
+
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.thumbnail {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 11px;
+  padding: 2px;
+  text-align: center;
+}
+
+.btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.875rem;
+  border: 1px solid #378add;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: #378add;
+  transition: all 0.15s;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: #378add;
+  color: white;
+  border-color: #378add;
+  width: 100%;
+}
+
+.btn-primary:active {
+  background: #2a6ab8;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  padding: 0.875rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+  font-size: 14px;
+  display: none;
+}
+
+.status.show {
+  display: block;
+}
+
+.status-info {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.result-item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.result-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.result-checkbox {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: #378add;
+}
+
+.result-item.selected {
+  border: 2px solid #378add;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #666;
+  font-size: 14px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-top-color: #378add;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.refinement-section {
+  display: none;
+}
+
+.refinement-section.show {
+  display: block;
+}
+
+.select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.select-item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.select-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.select-checkbox {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: #378add;
+}
+
+.select-item.selected {
+  border: 2px solid #378add;
+}
+</style>
+</head>
+<body>
+
+<div class="mobile-container">
+  <div class="header">
+    <div class="header-title">✨ 虛擬試衣間</div>
+    <div class="header-desc">上傳圖片，智能生成試穿效果</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">步驟 1: 上傳圖片</div>
+    
+    <div class="form-group">
+      <label class="form-label">主角身體</label>
+      <div class="upload-box" onclick="document.getElementById('bodyInput').click()">
+        <input type="file" id="bodyInput" accept="image/*">
+        <p class="upload-text">點選上傳身體照片</p>
+      </div>
+      <img id="bodyPreview" class="image-preview">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">衣服圖片 (最多 5 張)</label>
+      <div class="upload-box" onclick="document.getElementById('clothingInput').click()">
+        <input type="file" id="clothingInput" accept="image/*" multiple>
+        <p class="upload-text">點選上傳衣服照片</p>
+      </div>
+      <div id="clothingGrid" class="thumbnail-grid"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <button class="btn btn-primary" onclick="generateTryOn()">開始生成試穿效果</button>
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="section" id="resultsSection" style="display:none;">
+    <div class="section-title">生成結果</div>
+    <div id="resultsContainer"></div>
+  </div>
+
+  <div class="section refinement-section" id="refinementSection">
+    <div class="section-title">步驟 2: 進階編輯</div>
+    
+    <div class="form-group">
+      <label class="form-label">選擇要編輯的結果</label>
+      <div id="selectResultsGrid" class="select-grid"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">額外 Prompt 文字</label>
+      <textarea id="refinementPrompt" placeholder="例如：提升亮度、改變顏色、調整風格..."></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="refineResults()">重新生成選定圖片</button>
+  </div>
+</div>
+
+<script>
+const BACKEND_URL = 'https://virtual-tryon-backend-production-af43.up.railway.app';
+
+let bodyImageData = null;
+let clothingImages = [];
+let generatedResults = [];
+let selectedForRefinement = new Set();
+
+function showStatus(message, type) {
+  const statusDiv = document.getElementById('status');
+  statusDiv.textContent = message;
+  statusDiv.className = `status show status-${type}`;
+}
+
+function hideStatus() {
+  document.getElementById('status').classList.remove('show');
+}
+
+document.getElementById('bodyInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      bodyImageData = event.target.result;
+      const preview = document.getElementById('bodyPreview');
+      preview.src = bodyImageData;
+      preview.classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+document.getElementById('clothingInput').addEventListener('change', function(e) {
+  const files = Array.from(e.target.files).slice(0, 5);
+  clothingImages = [];
+  document.getElementById('clothingGrid').innerHTML = '';
+
+  files.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      clothingImages.push(event.target.result);
+      
+      const div = document.createElement('div');
+      div.className = 'thumbnail';
+      div.innerHTML = `
+        <img src="${event.target.result}" alt="衣服 ${index + 1}">
+        <div class="thumbnail-label">衣服 ${index + 1}</div>
+      `;
+      document.getElementById('clothingGrid').appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+async function generateTryOn() {
+  if (!bodyImageData) {
+    showStatus('請上傳主角身體圖片', 'error');
+    return;
+  }
+
+  if (clothingImages.length === 0) {
+    showStatus('請上傳至少一張衣服圖片', 'error');
+    return;
+  }
+
+  showStatus('正在生成試穿效果...', 'info');
+  
+  const resultsContainer = document.getElementById('resultsContainer');
+  resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div>生成中...</div>';
+  document.getElementById('resultsSection').style.display = 'block';
+
+  try {
+    generatedResults = [];
+    
+    for (let i = 0; i < clothingImages.length; i++) {
+      const result = await callTryOnAPI(bodyImageData, clothingImages[i], i);
+      generatedResults.push({
+        id: i,
+        image: result,
+        clothingIndex: i
+      });
+    }
+
+    displayResults();
+    showStatus('生成完成！', 'success');
+    document.getElementById('refinementSection').classList.add('show');
+  } catch (error) {
+    showStatus(`生成失敗: ${error.message}`, 'error');
+    resultsContainer.innerHTML = '';
+  }
+}
+
+function displayResults() {
+  const container = document.getElementById('resultsContainer');
+  const selectGrid = document.getElementById('selectResultsGrid');
+
+  container.innerHTML = '<div class="results-grid">' + 
+    generatedResults.map((r, i) => `
+      <div class="result-item">
+        <img src="${r.image}" alt="結果 ${i+1}">
+      </div>
+    `).join('') + 
+    '</div>';
+
+  selectGrid.innerHTML = generatedResults.map((r, i) => `
+    <div class="select-item" onclick="toggleSelectItem(${i}, this)">
+      <img src="${r.image}" alt="結果 ${i+1}">
+      <input type="checkbox" class="select-checkbox" data-index="${i}">
+    </div>
+  `).join('');
+
+  selectedForRefinement.clear();
+}
+
+function toggleSelectItem(index, element) {
+  const checkbox = element.querySelector('input[type="checkbox"]');
+  checkbox.checked = !checkbox.checked;
+
+  if (checkbox.checked) {
+    selectedForRefinement.add(index);
+    element.classList.add('selected');
+  } else {
+    selectedForRefinement.delete(index);
+    element.classList.remove('selected');
+  }
+}
+
+async function refineResults() {
+  const refinementPrompt = document.getElementById('refinementPrompt').value;
+
+  if (selectedForRefinement.size === 0) {
+    showStatus('請選擇至少一張圖片進行編輯', 'error');
+    return;
+  }
+
+  if (!refinementPrompt.trim()) {
+    showStatus('請輸入編輯提示文字', 'error');
+    return;
+  }
+
+  showStatus('正在重新生成...', 'info');
+
+  try {
+    for (const index of selectedForRefinement) {
+      const result = await callRefinementAPI(generatedResults[index].image, refinementPrompt);
+      generatedResults[index].image = result;
+    }
+
+    displayResults();
+    showStatus('重新生成完成！', 'success');
+  } catch (error) {
+    showStatus(`重新生成失敗: ${error.message}`, 'error');
+  }
+}
+
+async function callTryOnAPI(bodyImage, clothingImage, index) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/tryon`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        body_image: bodyImage,
+        clothing_image: clothingImage,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      return data.image;
+    } else {
+      throw new Error('生成失敗');
+    }
+  } catch (error) {
+    console.error('API call error:', error);
+    throw error;
+  }
+}
+
+async function callRefinementAPI(image, prompt) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/refine`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: image,
+        prompt: prompt,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      return data.image;
+    } else {
+      throw new Error('編輯失敗');
+    }
+  } catch (error) {
+    console.error('Refinement API error:', error);
+    throw error;
+  }
+}
+</script>
+
+</body>
+</html>
