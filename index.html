@@ -510,10 +510,24 @@ async function refineResults() {
     return;
   }
 
-  showStatus('正在重新生成...', 'info');
+  // 鎖定按鈕,避免重複點擊
+  const btn = document.querySelector('#refinementSection .btn-primary');
+  btn.disabled = true;
+  btn.textContent = '生成中,請稍候...';
+
+  // 在選擇區上方顯示轉圈提示
+  const selectGrid = document.getElementById('selectResultsGrid');
+  const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'refineLoading';
+  loadingDiv.className = 'loading';
+  loadingDiv.innerHTML = '<div class="spinner"></div>正在重新生成,每張約需 30-60 秒...';
+  selectGrid.parentNode.insertBefore(loadingDiv, selectGrid);
 
   try {
-    for (const index of selectedForRefinement) {
+    const selectedList = Array.from(selectedForRefinement);
+    for (let i = 0; i < selectedList.length; i++) {
+      showStatus(`正在重新生成第 ${i + 1} / ${selectedList.length} 張,請耐心等待...`, 'info');
+      const index = selectedList[i];
       const result = await callRefinementAPI(generatedResults[index].image, refinementPrompt);
       generatedResults[index].image = result;
     }
@@ -522,6 +536,12 @@ async function refineResults() {
     showStatus('重新生成完成!', 'success');
   } catch (error) {
     showStatus(`重新生成失敗: ${error.message}`, 'error');
+  } finally {
+    // 無論成功失敗,恢復按鈕和移除轉圈
+    btn.disabled = false;
+    btn.textContent = '重新生成選定圖片';
+    const loading = document.getElementById('refineLoading');
+    if (loading) loading.remove();
   }
 }
 
