@@ -44,10 +44,11 @@ async def generate_tryon(request: TryOnRequest):
         client = replicate.Client(api_token=REPLICATE_API_TOKEN)
         
         output = client.run(
-            'cuuupid/idm-vton',
+            'cuuupid/idm-vton:139cb1163486954531b765d4ac3bb6d3e02fe121151665adfc3b47e9ba3ebf67',
             input={
-                'cloth_image': request.clothing_image,
-                'human_image': request.body_image,
+                'garm_img': request.clothing_image,
+                'human_img': request.body_image,
+                'garment_des': 'clothing',
             }
         )
         
