@@ -244,20 +244,6 @@ textarea {
   object-fit: cover;
 }
 
-.result-checkbox {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  accent-color: #378add;
-}
-
-.result-item.selected {
-  border: 2px solid #378add;
-}
-
 .loading {
   text-align: center;
   padding: 2rem 1rem;
@@ -302,6 +288,7 @@ textarea {
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
+  cursor: pointer;
 }
 
 .select-item img {
@@ -316,8 +303,8 @@ textarea {
   left: 0.5rem;
   width: 24px;
   height: 24px;
-  cursor: pointer;
   accent-color: #378add;
+  pointer-events: none;
 }
 
 .select-item.selected {
@@ -330,7 +317,7 @@ textarea {
 <div class="mobile-container">
   <div class="header">
     <div class="header-title">✨ 虛擬試衣間</div>
-    <div class="header-desc">上傳圖片，智能生成試穿效果</div>
+    <div class="header-desc">上傳圖片,智能生成試穿效果</div>
   </div>
 
   <div class="section">
@@ -369,13 +356,13 @@ textarea {
     <div class="section-title">步驟 2: 進階編輯</div>
     
     <div class="form-group">
-      <label class="form-label">選擇要編輯的結果</label>
+      <label class="form-label">選擇要編輯的結果 (點擊圖片勾選)</label>
       <div id="selectResultsGrid" class="select-grid"></div>
     </div>
 
     <div class="form-group">
       <label class="form-label">額外 Prompt 文字</label>
-      <textarea id="refinementPrompt" placeholder="例如：提升亮度、改變顏色、調整風格..."></textarea>
+      <textarea id="refinementPrompt" placeholder="例如:提升亮度、改變顏色、調整風格..."></textarea>
     </div>
 
     <button class="btn btn-primary" onclick="refineResults()">重新生成選定圖片</button>
@@ -447,7 +434,7 @@ async function generateTryOn() {
     return;
   }
 
-  showStatus('正在生成試穿效果...', 'info');
+  showStatus('正在生成試穿效果,每張約需 1-2 分鐘,請耐心等待...', 'info');
   
   const resultsContainer = document.getElementById('resultsContainer');
   resultsContainer.innerHTML = '<div class="loading"><div class="spinner"></div>生成中...</div>';
@@ -457,6 +444,7 @@ async function generateTryOn() {
     generatedResults = [];
     
     for (let i = 0; i < clothingImages.length; i++) {
+      showStatus(`正在生成第 ${i + 1} / ${clothingImages.length} 張...`, 'info');
       const result = await callTryOnAPI(bodyImageData, clothingImages[i], i);
       generatedResults.push({
         id: i,
@@ -466,7 +454,7 @@ async function generateTryOn() {
     }
 
     displayResults();
-    showStatus('生成完成！', 'success');
+    showStatus('生成完成!', 'success');
     document.getElementById('refinementSection').classList.add('show');
   } catch (error) {
     showStatus(`生成失敗: ${error.message}`, 'error');
@@ -531,7 +519,7 @@ async function refineResults() {
     }
 
     displayResults();
-    showStatus('重新生成完成！', 'success');
+    showStatus('重新生成完成!', 'success');
   } catch (error) {
     showStatus(`重新生成失敗: ${error.message}`, 'error');
   }
@@ -551,7 +539,12 @@ async function callTryOnAPI(bodyImage, clothingImage, index) {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
+      let detail = response.statusText;
+      try {
+        const errData = await response.json();
+        if (errData.detail) detail = errData.detail;
+      } catch (e) {}
+      throw new Error(detail);
     }
 
     const data = await response.json();
@@ -580,7 +573,12 @@ async function callRefinementAPI(image, prompt) {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
+      let detail = response.statusText;
+      try {
+        const errData = await response.json();
+        if (errData.detail) detail = errData.detail;
+      } catch (e) {}
+      throw new Error(detail);
     }
 
     const data = await response.json();
