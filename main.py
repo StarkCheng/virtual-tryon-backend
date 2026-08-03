@@ -85,21 +85,31 @@ async def refine_image(request: RefineRequest):
         if not OPENAI_API_KEY:
             raise HTTPException(status_code=500, detail='OpenAI API key not configured')
 
+        # 把前端傳來的 base64 data URL 解碼成真實圖片位元組
+        image_data = request.image
+        if ',' in image_data:
+            image_data = image_data.split(',', 1)[1]
+        image_bytes = base64.b64decode(image_data)
+
         headers = {
             'Authorization': f'Bearer {OPENAI_API_KEY}',
-            'Content-Type': 'application/json'
         }
 
-        payload = {
+        # OpenAI 圖片編輯 API 要求 multipart/form-data 格式
+        files = {
+            'image': ('image.png', image_bytes, 'image/png'),
+        }
+        data = {
             'model': 'gpt-image-1',
-            'image': request.image,
             'prompt': request.prompt,
         }
 
         response = requests.post(
-            'https://api.openai.com/v1/images/edit',
-            json=payload,
-            headers=headers
+            'https://api.openai.com/v1/images/edits',
+            headers=headers,
+            files=files,
+            data=data,
+            timeout=300,
         )
 
         if response.status_code == 200:
@@ -115,7 +125,7 @@ async def refine_image(request: RefineRequest):
                         return {'success': True, 'image': f'data:image/png;base64,{img_base64}'}
 
         print(f'OpenAI API error: {response.status_code} {response.text[:500]}')
-        raise HTTPException(status_code=500, detail=f'Image refinement failed: {response.status_code}')
+        raise HTTPException(status_code=500, detail=f'OpenAI error {response.status_code}: {response.text[:200]}')
 
     except HTTPException:
         raise
