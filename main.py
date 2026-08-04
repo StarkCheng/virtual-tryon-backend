@@ -156,9 +156,12 @@ async def generate_tryon(request: TryOnRequest):
                 'Preserve the garment\'s exact colour, pattern, texture and design details '
                 'from the second image.'
             ),
-            'input_fidelity': 'high',
             'quality': 'high',
         }
+
+        # gpt-image-1 系列才支援 input_fidelity,gpt-image-2 已內建高保真
+        if IMAGE_MODEL.startswith('gpt-image-1'):
+            data['input_fidelity'] = 'high'
 
         img_b64 = openai_images_edit(files, data)
 
@@ -197,9 +200,11 @@ async def refine_image(request: RefineRequest):
                 'Also preserve their hairstyle, body proportions and pose unless the instruction '
                 'explicitly asks otherwise.'
             ),
-            'input_fidelity': 'high',
             'quality': 'high',
         }
+
+        if IMAGE_MODEL.startswith('gpt-image-1'):
+            data['input_fidelity'] = 'high'
 
         img_b64 = openai_images_edit(files, data)
 
